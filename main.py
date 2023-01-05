@@ -1,4 +1,3 @@
-# Try out a complete brute-force ranking system 
 import pandas as pd
 import pulp
 import itertools
@@ -6,7 +5,7 @@ import itertools
 
 # ======================================
 # ====== Start of Inputs ===============
-# Note: these 3 dataframes can be read in from CSVs if you want
+# See README for how these should be formatted (and how to format CSVs if you want)
 
 teams_divisions = [  # team name and division
     ['A', 'A'],
@@ -16,7 +15,7 @@ teams_divisions = [  # team name and division
     ['E', 'B'],
     ['F', 'B']
 ]
-num_games_per_team = 2
+num_games_per_team = 2  # NOTE this should be set independent of how many teams there are. 24 I think.
 teams_divisions = pd.DataFrame(teams_divisions, columns=['Name', 'Division'])
 num_teams = teams_divisions.shape[0]
 team_names = teams_divisions.Name.tolist() 
@@ -33,7 +32,7 @@ rink_descriptions = [
     ['R2', '01/02/2023', 1400, 120],
     ['R2', '01/01/2023', 1800, 120],
     ['R2', '01/02/2023', 1800, 120],
-    ['R3', '01/01/2023', 10000, 0], # give it an impossible time so it never picks this
+    ['R3', '01/01/2023', 10000, 0], # give it a large time for toy example to rank poorly so it never picks this
     ['R4', '01/01/2023', 10000, 0], # 
     ['R5', '01/01/2023', 10000, 0], # 
     ['R6', '01/01/2023', 10000, 0] # Just so we have 6 rinks
@@ -43,8 +42,8 @@ rink_names = rink_descriptions.Name.unique().tolist()
 num_rink_times = rink_descriptions.shape[0]
 
 
-# Preferences! Okay so each team ranks each rink and each time as ordinal preferences
-# I know it's opposibe, but easier to be doing 1 as "most preferred" and arbitrarilly large number for least preferred
+# Preferences. Okay so each team ranks each rink and each time as ordinal preferences
+# I know it's oppposite, but easier to be doing 1 as "most preferred" and arbitrarilly large number for least preferred
 # Toy example only wants us to use Rink1 and Rink2, so setting most preferences here to 10
 rink_preferences = [
     # Team-is-the-index, then: Rink1, Rink2,    Rink6
@@ -63,7 +62,7 @@ rink_preferences = pd.DataFrame(rink_preferences, index=team_names, columns=rink
 time_preference_choices = [ 
     [0, 800], # midnight to 8am  # NOTE: Players should think of this as 0 to 7:59
     [800, 1200],  # 8am to noon  # And this as 8am to 11:59am 
-    [1200, 1600], # noon to 4pm
+    [1200, 1600], # noon to 4pm  # (this is important)
     [1600, 2000],  # 4pm to 8pm
     [2000, 20000]  # 8pm to rest of the universe (should be 2400)
     ]
@@ -200,7 +199,7 @@ for i in range(dim_i):
 for teami in range(dim_i):
     constraint = pulp.lpSum([v for k, v in x.items()
                             if (teami == k[0] or teami == k[1])]) == num_games_per_team
-    #prob += constraint
+    prob += constraint
 
 
 # Minimize objective (maximize preferences)
