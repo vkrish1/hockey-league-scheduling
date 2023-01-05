@@ -38,10 +38,10 @@ A datarame where each row has the preferences for a team. So there should be <nu
 Example:  
 |   | Rink1 | Rink2 | Rink3 | ... |
 |---|-------|-------|-------|-----|
-| *A* |   1   |   4   |  3    |  5  | 
-| *B* |   2   |   1   |  10   |  10 |
-| *C* |   2   |   5   |   1   |  6  |
-| *D* |   3   |   1   |   2   | 4   |
+| **A** |   1   |   4   |  3    |  5  | 
+| **B** |   2   |   1   |  10   |  10 |
+| **C** |   2   |   5   |   1   |  6  |
+| **D** |   3   |   1   |   2   | 4   |
 | etc | | | | |
 
 ### 4. Time Preferences
@@ -59,14 +59,20 @@ time_preference_choices = [   # Should change these to whatever's on the form...
 
 |   | [0, 800] | [800, 1200] | [1200, 1600] | ... |
 |---|-------|-------|-------|-----|
-| *A* |   1   |   4   |  3    |  5  | 
-| *B* |   2   |   1   |  10   |  10 |
-| *C* |   2   |   5   |   1   |  6  |
-| *D* |   3   |   1   |   2   | 4   |
+| **A** |   1   |   4   |  3    |  5  | 
+| **B** |   2   |   1   |  10   |  10 |
+| **C** |   2   |   5   |   1   |  6  |
+| **D** |   3   |   1   |   2   | 4   |
 | etc | | | | |
 
 
+### 5. Weights _alpha_ and _beta_
+So since there are 2 types of preferences (rink and time), it's helpful to have constants that define how to weight each of them respectively in searching for an optimal solution. Since they're both on similar scales (or at least they both start at 1...), I just add the two preference values with weights:  
+**alpha** x time-preference + **beta** x rink-preference   
+So a possible match that gives the players their most preferred rink (1) and most preferred time (1) will have a score of 2. (And a possible match that gives everyone their least preferred rink (5) and least preferred time (5) will have a score of 10....) At the end, the matches with the lowest scores win out. By default both alpha and beta 1 (so generally equally-weighted).   
+
 ## How this works
 Solves a linear optimization problem, where binary variables indicate a unique match: 
-$$ X_{ijk} = 1 $$ represents a match where team _i_ and team _j_ play eachother at rink-time _k_. 
-So there are num\_i x num\_j x num\_k possible variables like this. We define an equation that uses these variables (and set some constraints on them as well). The solution to this equation assigns some of them 1 and some of them 0. We use the pulp library to solve (default solver). 
+$$ X_{ijk} $$ 
+represents a potential match where team _i_ and team _j_ play eachother at rink-time _k_. If in our solution, a given X_{ijk} == 1, that match exists (and if it's 0, it doesn't. )  
+So there are num\_i x num\_j x num\_k possible variables like this. We define an equation\* that uses these variables (and set some constraints on them as well). This equation formalizes an optimization -- we're aiming to find combinations of these variables that minimize an objective function (basically the preference 'score'; see the Weights alpha and beta section above). The solution to this equation assigns some of them 1 and some of them 0. We use the pulp library to solve (default solver).  
